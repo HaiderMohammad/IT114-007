@@ -10,6 +10,8 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
 import java.io.IOException;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.io.FileWriter;
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -167,6 +169,7 @@ public class ClientUI extends JFrame implements Event {
 		JTextField text = new JTextField();
 		input.add(text);
 		JButton button = new JButton("Send");
+		JButton logButton = new JButton("Save Log");
 		text.getInputMap().put(KeyStroke.getKeyStroke(KeyEvent.VK_ENTER, 0), "sendAction");
 		text.getActionMap().put("sendAction", new AbstractAction() {
 			/**
@@ -191,8 +194,15 @@ public class ClientUI extends JFrame implements Event {
 
 		});
 
+		logButton.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				exportLog();
+			}
+		});
 
 		input.add(button);
+		input.add(logButton);
 		panel.add(input, BorderLayout.SOUTH);
 		this.add(panel, "lobby");
 	}
@@ -386,5 +396,23 @@ public class ClientUI extends JFrame implements Event {
 			}
 		}
 	}
+	
+	public void exportLog() {
+		DateTimeFormatter dtf = DateTimeFormatter.ofPattern("dd-MM-yyyy");  
+		LocalDateTime now = LocalDateTime.now();  
+		try (FileWriter file = new FileWriter(self.getTitle() + "-ChatLog-" + dtf.format(now) + ".txt")) {
+			int count = textArea.getComponentCount();
+			for (int i = 0; i < count; i++) {
+				JEditorPane text = (JEditorPane)textArea.getComponent(i);
+				if (text != null) {
+					String line = text.getText().replaceAll("\\<.*?\\>", "").trim();
+					file.write("" + line + "\n");
+				}
+			}
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+	}
+	
 
 }
